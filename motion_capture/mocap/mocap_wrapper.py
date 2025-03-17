@@ -12,7 +12,15 @@ import supervision as sv
 from pyvirtualdisplay import Display
 from scipy.spatial.transform import Rotation as R
 
+# WiLoR
+from wilor.datasets.utils import convert_cvimg_to_tensor, expand_to_aspect_ratio, generate_image_patch_cv2
+
+# 4DHuman
+from hmr2.models import DEFAULT_CHECKPOINT
+from hmr2.datasets.vitdet_dataset import ViTDetDataset as HMR2ViTDetDataset
+
 # utils and constants
+from motion_capture.detector import DetectionResult
 from motion_capture.utils.utils import (
     rotation_matrix_to_quaternion,
     draw_axis,
@@ -21,6 +29,10 @@ from motion_capture.utils.utils import (
     load_hmr2,
     recursive_to,
     cam_crop_to_full,
+    Renderer,
+    draw_hand_keypoints,
+)
+from motion_capture.utils import (
     MANO_JOINTS_CONNECTION,
     MANO_CONNECTION_NAMES,
     MANO_KEYPOINT_NAMES,
@@ -29,17 +41,7 @@ from motion_capture.utils.utils import (
     HAMER_CONFIG_PATH,
     WILOR_CHECKPOINT_PATH,
     WILOR_CONFIG_PATH,
-    Renderer,
-    draw_hand_keypoints,
 )
-from motion_capture.detector import DetectionResult
-
-# WiLoR
-from wilor.datasets.utils import convert_cvimg_to_tensor, expand_to_aspect_ratio, generate_image_patch_cv2
-
-# 4DHuman
-from hmr2.models import DEFAULT_CHECKPOINT
-from hmr2.datasets.vitdet_dataset import ViTDetDataset as HMR2ViTDetDataset
 
 
 BOX_ANNOTATOR = sv.BoxAnnotator()

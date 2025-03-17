@@ -24,7 +24,7 @@ from hand_object_detector.utils.net_utils import (
 from hand_object_detector.faster_rcnn.resnet import resnet
 
 # utils and constants
-from motion_capture.utils.utils import (
+from motion_capture.utils import (
     PASCAL_CLASSES,
     HAND_OBJECT_DETECTOR_CHECKPOINT_PATH,
     FONT_PATH,

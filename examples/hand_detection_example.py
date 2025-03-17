@@ -3,8 +3,7 @@
 
 import argparse
 import cv2
-from motion_capture.detector import DetectionModelFactory
-from motion_capture.mocap import MocapModelFactory
+from motion_capture import DetectionModelFactory, MocapModelFactory
 
 
 def main(args):
