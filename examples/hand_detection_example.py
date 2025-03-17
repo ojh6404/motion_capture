@@ -35,39 +35,13 @@ def main(args):
         raise ValueError(f"Invalid detector model: {detector}")
 
     mocap = args.mocap
-    if mocap == "frankmocap_hand":
-        mocap_config = {
-            "render_type": "opengl",
-            "img_size": img_size,
-            "visualize": True,
-            "device": args.device,
-        }
-    elif mocap == "hamer":
-        mocap_config = {
-            "focal_length": 525.0,
-            "rescale_factor": 2.0,
-            "img_size": img_size,
-            "visualize": True,
-            "device": args.device,
-        }
-    elif mocap == "wilor":
-        mocap_config = {
-            "focal_length": 525.0,
-            "rescale_factor": 2.0,
-            "img_size": img_size,
-            "visualize": True,
-            "device": args.device,
-        }
-    elif mocap == "4d-human":
-        mocap_config = {
-            "focal_length": 525.0,
-            "rescale_factor": 2.0,
-            "img_size": img_size,
-            "visualize": True,
-            "device": args.device,
-        }
-    else:
-        raise ValueError(f"Invalid mocap model: {mocap}")
+    mocap_config = {
+        "focal_length": 525.0,
+        "rescale_factor": 2.0,
+        "img_size": img_size,
+        "visualize": True,
+        "device": args.device,
+    }
 
     detection_model = DetectionModelFactory.from_config(
         model=detector,
@@ -90,7 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("--input", type=str, default="input.jpg", help="Input image")
     parser.add_argument("--output", type=str, default="output.jpg", help="Output image")
     parser.add_argument("--detector", type=str, default="hand_object_detector", help="Detector model")
-    parser.add_argument("--mocap", type=str, default="hamer", help="Mocap model")
+    parser.add_argument("--mocap", type=str, default="wilor", help="Mocap model")
     parser.add_argument("--device", type=str, default="cuda:0", help="Device to use")
     args = parser.parse_args()
 
