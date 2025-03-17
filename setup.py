@@ -66,7 +66,6 @@ install_requires = [
     "joblib",
     "chumpy@git+https://github.com/ojh6404/chumpy.git@patch-python3.11",
     "detectron2 @ git+https://github.com/facebookresearch/detectron2.git",
-    "pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git",
 ]
 
 
@@ -81,5 +80,5 @@ setup(
     author="Jihoon Oh",
     url="https://github.com/ojh6404/motion_capture",
     author_email="ojh6404@gmail.com",
-    version="0.0.1",
+    version="0.0.2",
 )

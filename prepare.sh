@@ -4,24 +4,13 @@ git submodule update --init --recursive
 pip install ninja
 pip install -e .
 pip install -U "setuptools<70"
-export FORCE_CUDA=1
-# pip install git+https://github.com/facebookresearch/pytorch3d.git
 
-# install hand_object_detector and frankmocap
-echo "Installing hand-object-detector and frankmocap"
-cd third_party/frankmocap && pip install -r docs/requirements.txt
-rm -rf detectors/hand_object_detector/lib/pycocotools && rm -rf detectors/hand_object_detector/lib/datasets # remove pycocotools and datasets cause they may cause conflicts with existing pycocotools
-bash scripts/install_frankmocap.sh
-mkdir -p extra_data/smpl
-gdown https://drive.google.com/uc\?id\=1LBRm4pZzB7gp5aSPr_M-kTI2mrKMi483 -O extra_data/smpl/basicModel_neutral_lbs_10_207_0_v1.0.0.pkl -c
-gdown https://drive.google.com/uc\?id\=1zG9X15BGX3ywxn4ZgBUCJSGyNi7m2VWC -O extra_data/smpl/SMPLX_NEUTRAL.pkl -c
-
-# install Arbitrary-Hands-3D-Reconstruction
-echo "Installing Arbitrary-Hands-3D-Reconstruction"
-cd ../Arbitrary-Hands-3D-Reconstruction && pip install -r requirements.txt
-gdown https://drive.google.com/uc\?id\=1sgZ9dF0FH5z9wSXm9dNXuSyN3ZaTX28U -O mano/MANO_RIGHT.pkl -c
-gdown https://drive.google.com/uc\?id\=17GjLggQpHoJKaZsvG2kSS9Zn4Fp3lW3w -O mano/MANO_LEFT.pkl -c
-mkdir -p checkpoints && gdown https://drive.google.com/uc\?id\=1aCeKMVgIPqYjafMyUJsYzc0h6qeuveG9 -O checkpoints/wild.pkl -c
+# install hand object detector
+echo "Installing hand object detector"
+cd third_party/hand_object_detector && pip install -r requirements.txt
+rm -rf lib/pycocotools && rm -rf lib/datasets # remove pycocotools and datasets cause they may cause conflicts with existing pycocotools
+gdown https://drive.google.com/uc\?id\=1H2tWsZkS7tDF8q1-jdjx6V9XrK25EDbE
+cd lib && python setup.py build develop --user && cd ..
 
 # install hamer
 echo "Installing HaMeR"

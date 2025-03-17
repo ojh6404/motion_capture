@@ -5,13 +5,10 @@
 [submodule "third_party/hamer"]
 	path = third_party/hamer
 	url = https://github.com/ojh6404/hamer.git
-[submodule "third_party/Arbitrary-Hands-3D-Reconstruction"]
-	path = third_party/Arbitrary-Hands-3D-Reconstruction
-	url = https://github.com/ojh6404/Arbitrary-Hands-3D-Reconstruction.git
-[submodule "third_party/frankmocap"]
-	path = third_party/frankmocap
-	url = https://github.com/ojh6404/frankmocap.git
 [submodule "third_party/WiLoR"]
 	path = third_party/WiLoR
 	url = https://github.com/ojh6404/WiLoR.git
 	branch = patch-python3.8
+[submodule "third_party/hand_object_detector"]
+	path = third_party/hand_object_detector
+	url = https://github.com/ojh6404/hand_object_detector.git

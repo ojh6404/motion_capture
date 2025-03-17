@@ -4,7 +4,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List, Tuple, Dict, Optional
-import sys
 import torch
 import numpy as np
 import cv2
@@ -26,9 +25,6 @@ from motion_capture.utils.utils import (
     MANO_CONNECTION_NAMES,
     MANO_KEYPOINT_NAMES,
     SPIN_KEYPOINT_NAMES,
-    FRANKMOCAP_PATH,
-    FRANKMOCAP_CHECKPOINT,
-    SMPL_DIR,
     HAMER_CHECKPOINT_PATH,
     HAMER_CONFIG_PATH,
     WILOR_CHECKPOINT_PATH,
@@ -37,11 +33,6 @@ from motion_capture.utils.utils import (
     draw_hand_keypoints,
 )
 from motion_capture.detector import DetectionResult
-
-# frankmocap hand
-sys.path.insert(0, FRANKMOCAP_PATH)
-import mocap_utils.demo_utils as demo_utils
-from handmocap.hand_mocap_api import HandMocap as FrankMocapHand
 
 # WiLoR
 from wilor.datasets.utils import convert_cvimg_to_tensor, expand_to_aspect_ratio, generate_image_patch_cv2
@@ -70,9 +61,7 @@ class MocapResult:
 class MocapModelFactory:
     @staticmethod
     def from_config(model: str, model_config: dict):
-        if model == "frankmocap_hand":
-            return FrankMocapHandModel(**model_config)
-        elif model == "hamer":
+        if model == "hamer":
             return HamerModel(**model_config)
         elif model == "wilor":
             return WiLoRModel(**model_config)
@@ -88,94 +77,6 @@ class MocapModelBase(ABC):
         self, img: np.ndarray, detections: List[DetectionResult], vis_img: Optional[np.ndarray] = None
     ) -> Tuple[List[MocapResult], np.ndarray]:
         pass
-
-
-class FrankMocapHandModel(MocapModelBase):
-    def __init__(
-        self,
-        img_size: tuple = (640, 480),  # (width, height)
-        render_type: str = "opengl",  # pytorch3d, opendr, opengl
-        visualize: bool = True,  # whether to visualize the result
-        device: str = "cuda:0",
-    ):
-        self.display = Display(visible=0, size=img_size)
-        self.display.start()
-        self.img_size = img_size
-        self.visualize = visualize
-        self.render_type = render_type
-        self.device = device
-
-        # init model
-        self.mocap = FrankMocapHand(FRANKMOCAP_CHECKPOINT, SMPL_DIR, device=self.device)
-        if self.visualize:
-            if self.render_type in ["pytorch3d", "opendr"]:
-                from renderer.screen_free_visualizer import Visualizer
-            elif self.render_type == "opengl":
-                from renderer.visualizer import Visualizer
-            else:
-                raise ValueError("Invalid render type")
-            self.renderer = Visualizer(self.render_type)
-
-    @torch.no_grad()
-    def predict(
-        self, img: np.ndarray, detections: List[DetectionResult], vis_img: Optional[np.ndarray] = None
-    ) -> Tuple[List[MocapResult], np.ndarray]:
-        hand_bbox_list = []
-        hand_bbox_dict = {"left_hand": None, "right_hand": None}
-        mocap_results = []
-        if detections:
-            for detection in detections:
-                hand_bbox_dict[detection.label] = detection.rect
-            hand_bbox_list.append(hand_bbox_dict)
-            # Hand Pose Regression
-            pred_output_list = self.mocap.regress(img, hand_bbox_list, add_margin=True)
-            pred_mesh_list = demo_utils.extract_mesh_from_output(pred_output_list)
-
-            if self.visualize:
-                # visualize
-                vis_img = self.renderer.visualize(
-                    vis_img, pred_mesh_list=pred_mesh_list, hand_bbox_list=hand_bbox_list
-                )
-
-            for hand in pred_output_list[0]:  # TODO: handle multiple hands
-                if pred_output_list[0][hand] is not None:
-                    joint_coords = pred_output_list[0][hand]["pred_joints_img"]
-                    hand_origin = np.sum(joint_coords[PALM_JOINTS] * WEIGHTS[:, None], axis=0)
-                    hand_orientation = pred_output_list[0][hand]["pred_hand_pose"][0, :3].astype(
-                        np.float32
-                    )  # angle-axis representation
-
-                    joint_3d_coords = pred_output_list[0][hand]["pred_joints_smpl"]  # (21, 3)
-
-                    # for detection in detections:
-                    #     if detection.label == hand:
-                    #         detection.pose = hand_pose
-
-                    rotation, _ = cv2.Rodrigues(hand_orientation)
-                    quat = rotation_matrix_to_quaternion(rotation)  # [w, x, y, z]
-                    if hand == "right_hand":
-                        x_axis = np.array([0, 0, 1])
-                        y_axis = np.array([0, -1, 0])
-                        z_axis = np.array([-1, 0, 0])
-                        rotated_result = R.from_rotvec(np.pi * np.array([1, 0, 0])) * R.from_quat(quat)
-                        quat = rotated_result.as_quat()  # [w, x, y, z]
-                    else:
-                        x_axis = np.array([0, 0, 1])
-                        y_axis = np.array([0, 1, 0])
-                        z_axis = np.array([1, 0, 0])
-                    x_axis_rotated = rotation @ x_axis
-                    y_axis_rotated = rotation @ y_axis
-                    z_axis_rotated = rotation @ z_axis
-
-                    # visualize hand orientation
-                    vis_img = draw_axis(vis_img, hand_origin, x_axis_rotated, (0, 0, 255))  # x: red
-                    vis_img = draw_axis(vis_img, hand_origin, y_axis_rotated, (0, 255, 0))  # y: green
-                    vis_img = draw_axis(vis_img, hand_origin, z_axis_rotated, (255, 0, 0))  # z: blue
-
-        return mocap_results, vis_img
-
-    def __del__(self):
-        self.display.stop()
 
 
 class HamerModel(MocapModelBase):

@@ -5,18 +5,10 @@ Hand and Body Detection Model Wrapper
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Union
-import sys
 import torch
 import numpy as np
 import cv2
 import supervision as sv
-
-# utils and constants
-from motion_capture.utils.utils import (
-    PASCAL_CLASSES,
-    CHECKPOINT_FILE,
-    FONT_PATH,
-)
 
 # hand object detector
 from hand_object_detector.utils.config import cfg as hand_object_detector_cfg
@@ -31,8 +23,14 @@ from hand_object_detector.utils.net_utils import (
 )
 from hand_object_detector.faster_rcnn.resnet import resnet
 
-np.random.seed(hand_object_detector_cfg.RNG_SEED)
+# utils and constants
+from motion_capture.utils.utils import (
+    PASCAL_CLASSES,
+    HAND_OBJECT_DETECTOR_CHECKPOINT_PATH,
+    FONT_PATH,
+)
 
+np.random.seed(hand_object_detector_cfg.RNG_SEED)
 
 BOX_ANNOTATOR = sv.BoundingBoxAnnotator()
 LABEL_ANNOTATOR = sv.LabelAnnotator()
@@ -85,7 +83,7 @@ class HandObjectDetectorModel(DetectionModelBase):
 
         self.fasterRCNN = resnet(PASCAL_CLASSES, 101, pretrained=False)
         self.fasterRCNN.create_architecture()
-        checkpoint = torch.load(CHECKPOINT_FILE, map_location=self.device)
+        checkpoint = torch.load(HAND_OBJECT_DETECTOR_CHECKPOINT_PATH, map_location=self.device)
 
         self.fasterRCNN.load_state_dict(checkpoint["model"])
         self.fasterRCNN.to(self.device)
