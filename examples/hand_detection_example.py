@@ -81,7 +81,7 @@ def main(args):
     detections, visualization = detection_model.predict(image)
     cv2.imwrite(args.output, visualization)
 
-    mocap_result, vis_im = mocap_model.predict(detections, image, visualization)
+    mocap_result, vis_im = mocap_model.predict(img=image, detections=detections, vis_img=visualization)
     cv2.imwrite(args.output, vis_im)
 
 
