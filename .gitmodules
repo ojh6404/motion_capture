@@ -11,3 +11,7 @@
 [submodule "third_party/frankmocap"]
 	path = third_party/frankmocap
 	url = https://github.com/ojh6404/frankmocap.git
+[submodule "third_party/WiLoR"]
+	path = third_party/WiLoR
+	url = https://github.com/ojh6404/WiLoR.git
+	branch = patch-python3.8

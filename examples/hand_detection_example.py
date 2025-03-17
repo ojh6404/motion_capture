@@ -6,6 +6,7 @@ import cv2
 from motion_capture.detector import DetectionModelFactory
 from motion_capture.mocap import MocapModelFactory
 
+
 def main(args):
     image = cv2.imread(args.input)
     img_size = (image.shape[1], image.shape[0])
@@ -42,6 +43,14 @@ def main(args):
             "device": args.device,
         }
     elif mocap == "hamer":
+        mocap_config = {
+            "focal_length": 525.0,
+            "rescale_factor": 2.0,
+            "img_size": img_size,
+            "visualize": True,
+            "device": args.device,
+        }
+    elif mocap == "wilor":
         mocap_config = {
             "focal_length": 525.0,
             "rescale_factor": 2.0,
