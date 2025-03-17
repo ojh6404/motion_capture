@@ -11,12 +11,10 @@ PACKAGE_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__fi
 THIRD_PARTY_ROOT = os.path.join(PACKAGE_ROOT, "third_party")
 
 # hand object detector and frankmocap paths
-FRANKMOCAP_PATH = os.path.join(THIRD_PARTY_ROOT, "frankmocap")
-HAND_OBJECT_MODEL_PATH = FRANKMOCAP_PATH + "/detectors/hand_object_detector/lib"
+HAND_OBJECT_DETECTOR_ROOT = os.path.join(THIRD_PARTY_ROOT, "hand_object_detector")
+HAND_OBJECT_MODEL_PATH = HAND_OBJECT_DETECTOR_ROOT + "/lib"
 FONT_PATH = HAND_OBJECT_MODEL_PATH + "/hand_object_detector/utils/times_b.ttf"
-CHECKPOINT_FILE = FRANKMOCAP_PATH + "/extra_data/hand_module/hand_detector/faster_rcnn_1_8_132028.pth"
-FRANKMOCAP_CHECKPOINT = FRANKMOCAP_PATH + "/extra_data/hand_module/pretrained_weights/pose_shape_best.pth"
-SMPL_DIR = FRANKMOCAP_PATH + "/extra_data/smpl/"
+HAND_OBJECT_DETECTOR_CHECKPOINT_PATH = HAND_OBJECT_DETECTOR_ROOT + "/faster_rcnn_1_8_132028.pth"
 PASCAL_CLASSES = np.asarray(["__background__", "targetobject", "hand"])  # for hand object detector
 
 # hamer paths
