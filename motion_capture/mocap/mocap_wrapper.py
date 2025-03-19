@@ -23,7 +23,6 @@ from hmr2.datasets.vitdet_dataset import ViTDetDataset as HMR2ViTDetDataset
 from motion_capture.detector import DetectionResult
 from motion_capture.utils.utils import (
     rotation_matrix_to_quaternion,
-    draw_axis,
     load_hamer,
     load_wilor,
     load_hmr2,
@@ -33,8 +32,6 @@ from motion_capture.utils.utils import (
     draw_hand_keypoints,
 )
 from motion_capture.utils import (
-    MANO_JOINTS_CONNECTION,
-    MANO_CONNECTION_NAMES,
     MANO_KEYPOINT_NAMES,
     SPIN_KEYPOINT_NAMES,
     HAMER_CHECKPOINT_PATH,
@@ -50,14 +47,14 @@ LABEL_ANNOTATOR = sv.LabelAnnotator()
 
 @dataclass
 class MocapResult:
-    detection: DetectionResult
-    position: np.ndarray
-    orientation: np.ndarray
-    keypoint_names: List[str]
-    keypoints: np.ndarray
-    keypoints_2d: np.ndarray
-    # betas: np.ndarray # MANO betas
-    # thetas: np.ndarray # MANO thetas
+    detection: DetectionResult  # Detection result
+    position: np.ndarray  # Wrist position
+    orientation: np.ndarray  # MANO global orientation
+    beta: np.ndarray  # MANO beta
+    theta: np.ndarray  # MANO theta
+    keypoint_names: List[str]  # keypoint names
+    keypoints_2d: np.ndarray  # 2D keypoints
+    keypoints: np.ndarray  # 3D keypoints
 
 
 class MocapModelFactory:
@@ -219,14 +216,24 @@ class HamerModel(MocapModelBase):
             mocap_results List[MocapResult]: List of MocapResult
             vis_img np.ndarray: Visualization image
         """
-
         mocap_results = []
         if detections:  # if there are detections
             boxes = np.array([detection.rect for detection in detections])  # x1, y1, x2, y2
             right = np.array([1 if detection.label == "right_hand" else 0 for detection in detections])
 
+            # Predict
             batch = self.preprocess_input(img=img, detections=detections)
-            out = self.mocap(batch)
+            out = self.mocap(
+                batch
+            )  # ['pred_cam', 'pred_mano_params', 'pred_cam_t', 'focal_length', 'pred_keypoints_2d', 'pred_keypoints_3d', 'pred_vertices']
+
+            # MANO params
+            mano_params = out["pred_mano_params"]  #
+            global_orients = mano_params["global_orient"].squeeze(1).detach().cpu().numpy()  # (N, 3, 3)
+            thetas = mano_params["hand_pose"].squeeze(1).detach().cpu().numpy()  # (N, 15, 3, 3)
+            betas = mano_params["betas"].detach().cpu().numpy()  # (N, 10)
+
+            # Camera params
             pred_cam = out["pred_cam"]
             pred_cam[:, 1] *= 2 * batch["right"] - 1
             box_center = batch["box_center"].float()
@@ -256,48 +263,24 @@ class HamerModel(MocapModelBase):
             pred_keypoints_3d[:, :, 0] = (2 * right[:, None] - 1) * pred_keypoints_3d[:, :, 0]
             pred_keypoints_3d += pred_cam_t_full[:, None, :]
 
-            # hand pose
-            hand_origin = np.mean(pred_keypoints_2d, axis=1)  # [N, 2]
-            hand_origin = np.concatenate([hand_origin, np.zeros((hand_origin.shape[0], 1))], axis=1)  # [N, 3]
-            global_orient = (
-                out["pred_mano_params"]["global_orient"].squeeze(1).detach().cpu().numpy()
-            )  # [N, 3, 3]
-
             for i, hand_id in enumerate(right):  # for each hand
-                assert (
-                    detections[i].label == "right_hand" if hand_id == 1 else "left_hand"
-                ), "Hand ID and hand detection mismatch"
-                rotation = global_orient[i]
-                if hand_id == 0:
-                    rotation[1::3] *= -1
-                    rotation[2::3] *= -1
+                assert detections[i].label == "right_hand" if hand_id == 1 else "left_hand", (
+                    "Hand ID and hand detection mismatch"
+                )
+                orientation = global_orients[i]
+                if hand_id == 0:  # left hand
+                    orientation[1::3] *= -1
+                    orientation[2::3] *= -1
 
-                quat = rotation_matrix_to_quaternion(rotation)  # [w, x, y, z]
-                if right[i] == 1:
-                    x_axis = np.array([0, 0, 1])
-                    y_axis = np.array([0, -1, 0])
-                    z_axis = np.array([-1, 0, 0])
-                    rotated_result = R.from_rotvec(np.pi * np.array([1, 0, 0])) * R.from_quat(
-                        quat
-                    )  # rotate 180 degree around x-axis
-                    quat = rotated_result.as_quat()  # [w, x, y, z]
-                else:
-                    x_axis = np.array([0, 0, -1])
-                    y_axis = np.array([0, -1, 0])
-                    z_axis = np.array([1, 0, 0])
-                    rotated_result = R.from_rotvec(np.pi * np.array([0, 0, 1])) * R.from_quat(
-                        quat
-                    )  # rotate 180 degree around x-axis
-                    quat = rotated_result.as_quat()  # [w, x, y, z]
-                x_axis_rotated = rotation @ x_axis
-                y_axis_rotated = rotation @ y_axis
-                z_axis_rotated = rotation @ z_axis
-
-                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]), "Keypoint mismatch"
+                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i]), (
+                    "Keypoint mismatch"
+                )
                 mocap_result = MocapResult(
                     detection=detections[i],
-                    position=pred_keypoints_3d[i][0],  # wrist position
-                    orientation=quat,
+                    position=pred_keypoints_3d[i][0],
+                    orientation=orientation,
+                    beta=betas[i],
+                    theta=thetas[i],
                     keypoint_names=MANO_KEYPOINT_NAMES,
                     keypoints=pred_keypoints_3d[i],
                     keypoints_2d=pred_keypoints_2d[i],
@@ -346,12 +329,6 @@ class HamerModel(MocapModelBase):
 
                 for pred_keypoint_2d in pred_keypoints_2d:
                     vis_img = draw_hand_keypoints(vis_img, pred_keypoint_2d)
-
-                # for i in range(len(detections)):
-                #     # visualize hand orientation
-                #     vis_im = draw_axis(vis_im, hand_origin[i], x_axis_rotated, (0, 0, 255))  # x: red
-                #     vis_im = draw_axis(vis_im, hand_origin[i], y_axis_rotated, (0, 255, 0))  # y: green
-                #     vis_im = draw_axis(vis_im, hand_origin[i], z_axis_rotated, (255, 0, 0))  # z: blue
 
         else:  # no detections
             if vis_img is None:
@@ -506,8 +483,19 @@ class WiLoRModel(MocapModelBase):
             boxes = np.array([detection.rect for detection in detections])  # x1, y1, x2, y2
             right = np.array([1 if detection.label == "right_hand" else 0 for detection in detections])
 
+            # Predict
             batch = self.preprocess_input(img=img, detections=detections)
-            out = self.mocap(batch)
+            out = self.mocap(
+                batch
+            )  # ['pred_cam', 'pred_mano_params', 'pred_cam_t', 'focal_length', 'pred_keypoints_2d', 'pred_keypoints_3d', 'pred_vertices']
+
+            # MANO params
+            mano_params = out["pred_mano_params"]  #
+            global_orients = mano_params["global_orient"].squeeze(1).detach().cpu().numpy()  # (N, 3, 3)
+            thetas = mano_params["hand_pose"].squeeze(1).detach().cpu().numpy()  # (N, 15, 3, 3)
+            betas = mano_params["betas"].detach().cpu().numpy()  # (N, 10)
+
+            # Camera params
             pred_cam = out["pred_cam"]
             pred_cam[:, 1] *= 2 * batch["right"] - 1
             box_center = batch["box_center"].float()
@@ -537,48 +525,24 @@ class WiLoRModel(MocapModelBase):
             pred_keypoints_3d[:, :, 0] = (2 * right[:, None] - 1) * pred_keypoints_3d[:, :, 0]
             pred_keypoints_3d += pred_cam_t_full[:, None, :]
 
-            # hand pose
-            hand_origin = np.mean(pred_keypoints_2d, axis=1)  # [N, 2]
-            hand_origin = np.concatenate([hand_origin, np.zeros((hand_origin.shape[0], 1))], axis=1)  # [N, 3]
-            global_orient = (
-                out["pred_mano_params"]["global_orient"].squeeze(1).detach().cpu().numpy()
-            )  # [N, 3, 3]
-
             for i, hand_id in enumerate(right):  # for each hand
-                assert (
-                    detections[i].label == "right_hand" if hand_id == 1 else "left_hand"
-                ), "Hand ID and hand detection mismatch"
-                rotation = global_orient[i]
-                if hand_id == 0:
-                    rotation[1::3] *= -1
-                    rotation[2::3] *= -1
+                assert detections[i].label == "right_hand" if hand_id == 1 else "left_hand", (
+                    "Hand ID and hand detection mismatch"
+                )
+                orientation = global_orients[i]
+                if hand_id == 0:  # left hand
+                    orientation[1::3] *= -1
+                    orientation[2::3] *= -1
 
-                quat = rotation_matrix_to_quaternion(rotation)  # [w, x, y, z]
-                if right[i] == 1:
-                    x_axis = np.array([0, 0, 1])
-                    y_axis = np.array([0, -1, 0])
-                    z_axis = np.array([-1, 0, 0])
-                    rotated_result = R.from_rotvec(np.pi * np.array([1, 0, 0])) * R.from_quat(
-                        quat
-                    )  # rotate 180 degree around x-axis
-                    quat = rotated_result.as_quat()  # [w, x, y, z]
-                else:
-                    x_axis = np.array([0, 0, -1])
-                    y_axis = np.array([0, -1, 0])
-                    z_axis = np.array([1, 0, 0])
-                    rotated_result = R.from_rotvec(np.pi * np.array([0, 0, 1])) * R.from_quat(
-                        quat
-                    )  # rotate 180 degree around x-axis
-                    quat = rotated_result.as_quat()  # [w, x, y, z]
-                x_axis_rotated = rotation @ x_axis
-                y_axis_rotated = rotation @ y_axis
-                z_axis_rotated = rotation @ z_axis
-
-                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]), "Keypoint mismatch"
+                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i]), (
+                    "Keypoint mismatch"
+                )
                 mocap_result = MocapResult(
                     detection=detections[i],
-                    position=pred_keypoints_3d[i][0],  # wrist position
-                    orientation=quat,
+                    position=pred_keypoints_3d[i][0],
+                    orientation=orientation,
+                    beta=betas[i],
+                    theta=thetas[i],
                     keypoint_names=MANO_KEYPOINT_NAMES,
                     keypoints=pred_keypoints_3d[i],
                     keypoints_2d=pred_keypoints_2d[i],
@@ -627,12 +591,6 @@ class WiLoRModel(MocapModelBase):
 
                 for pred_keypoint_2d in pred_keypoints_2d:
                     vis_img = draw_hand_keypoints(vis_img, pred_keypoint_2d)
-
-                # for i in range(len(detections)):
-                #     # visualize hand orientation
-                #     vis_im = draw_axis(vis_im, hand_origin[i], x_axis_rotated, (0, 0, 255))  # x: red
-                #     vis_im = draw_axis(vis_im, hand_origin[i], y_axis_rotated, (0, 255, 0))  # y: green
-                #     vis_im = draw_axis(vis_im, hand_origin[i], z_axis_rotated, (255, 0, 0))  # z: blue
 
         else:  # no detections
             if vis_img is None:
@@ -761,7 +719,6 @@ class HMR2Model(MocapModelBase):
                 mocap_result = MocapResult(
                     detection=detections[i],
                     position=pred_keypoints_3d[i][0],  #
-                    orientation=quat,
                     keypoint_names=SPIN_KEYPOINT_NAMES,
                     keypoints=pred_keypoints_3d[i],
                     keypoints_2d=pred_keypoints_2d[i],
