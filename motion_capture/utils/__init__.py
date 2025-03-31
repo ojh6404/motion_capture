@@ -7,24 +7,35 @@ import numpy as np
 PACKAGE_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.."))
 THIRD_PARTY_ROOT = os.path.join(PACKAGE_ROOT, "third_party")
 
-# hand object detector and frankmocap paths
+# Hand Object Detector paths
 HAND_OBJECT_DETECTOR_ROOT = os.path.join(THIRD_PARTY_ROOT, "hand_object_detector")
 HAND_OBJECT_MODEL_PATH = HAND_OBJECT_DETECTOR_ROOT + "/lib"
 FONT_PATH = HAND_OBJECT_MODEL_PATH + "/hand_object_detector/utils/times_b.ttf"
-HAND_OBJECT_DETECTOR_CHECKPOINT_PATH = HAND_OBJECT_DETECTOR_ROOT + "/faster_rcnn_1_8_132028.pth"
+HAND_OBJECT_DETECTOR_CHECKPOINT_PATH = PACKAGE_ROOT + "/weights/hand_object_detector.pth"
 PASCAL_CLASSES = np.asarray(["__background__", "targetobject", "hand"])  # for hand object detector
+
+# Body model paths
+DATA_ROOT = os.path.join(PACKAGE_ROOT, "data")
+MANO_ROOT = os.path.join(DATA_ROOT, "mano")
+SMPL_ROOT = os.path.join(DATA_ROOT, "smpl")
+SMPLX_ROOT = os.path.join(DATA_ROOT, "smplx")
 
 # HaMeR paths
 HAMER_ROOT = os.path.join(THIRD_PARTY_ROOT, "hamer")
-HAMER_CHECKPOINT_PATH = HAMER_ROOT + "/_DATA/hamer_ckpts/checkpoints/hamer.ckpt"
-HAMER_CONFIG_PATH = HAMER_ROOT + "/_DATA/hamer_ckpts/model_config.yaml"
+HAMER_CHECKPOINT_PATH = PACKAGE_ROOT + "/weights/hamer.ckpt"
+HAMER_CONFIG_PATH = PACKAGE_ROOT + "/cfgs/hamer.yaml"
 
 # WiLoR paths
 WILOR_ROOT = os.path.join(THIRD_PARTY_ROOT, "WiLoR")
-WILOR_CHECKPOINT_PATH = WILOR_ROOT + "/pretrained_models/wilor_final.ckpt"
-WILOR_CONFIG_PATH = WILOR_ROOT + "/pretrained_models/model_config.yaml"
+WILOR_CHECKPOINT_PATH = PACKAGE_ROOT + "/weights/wilor.ckpt"
+WILOR_CONFIG_PATH = PACKAGE_ROOT + "/cfgs/wilor.yaml"
 
+# HMR2 paths
+HMR2_ROOT = os.path.join(THIRD_PARTY_ROOT, "4D-Humans")
+HMR2_CHECKPOINT_PATH = PACKAGE_ROOT + "/weights/hmr2.ckpt"
+HMR2_CONFIG_PATH = PACKAGE_ROOT + "/cfgs/hmr2.yaml"
 
+# Hand colors
 HAND_COLOR = (0.65098039, 0.74117647, 0.85882353)
 
 

@@ -1,3 +1,4 @@
+from typing import Tuple, Any
 from pathlib import Path
 import torch
 import numpy as np
@@ -6,7 +7,19 @@ import pyrender
 import trimesh
 from scipy.spatial.transform import Rotation as R
 
-from motion_capture.utils import THIRD_PARTY_ROOT, HAMER_ROOT, WILOR_ROOT, MANO_JOINTS_CONNECTION, HAND_COLOR
+from motion_capture.utils import (
+    THIRD_PARTY_ROOT,
+    MANO_JOINTS_CONNECTION,
+    HAND_COLOR,
+    MANO_ROOT,
+    SMPL_ROOT,
+    WILOR_CHECKPOINT_PATH,
+    WILOR_CONFIG_PATH,
+    HAMER_CHECKPOINT_PATH,
+    HAMER_CONFIG_PATH,
+    HMR2_CHECKPOINT_PATH,
+    HMR2_CONFIG_PATH,
+)
 
 # optical frame to world frame
 OPTICAL_TO_WORLD = np.array([[0, -1, 0], [0, 0, -1], [1, 0, 0]])
@@ -56,14 +69,32 @@ def draw_axis(img, origin, axis, color, scale=20):
     return img
 
 
-def load_hamer(checkpoint_path, config_path, img_size, focal_length):
+def load_hamer(
+    img_size: Tuple[int, int],
+    focal_length: float,
+    checkpoint_path: str = HAMER_CHECKPOINT_PATH,
+    cfg_path: str = HAMER_CONFIG_PATH,
+) -> Tuple[Any, dict]:
+    """
+    Load HaMeR model from checkpoint.
+
+    Args:
+        img_size (Tuple[int, int]): Image size (width, height).
+        focal_length (float): Focal length.
+        checkpoint_path (str): Path to the model checkpoint.
+        cfg_path (str): Path to the model config file.
+
+    Returns:
+        Tuple[HAMER, dict]: Loaded model and its configuration.
+    """
+
     from hamer.configs import get_config
     from hamer.models import HAMER
 
-    model_cfg = get_config(config_path)
+    model_cfg = get_config(cfg_path)
     model_cfg.defrost()
-    model_cfg.MANO.MODEL_PATH = HAMER_ROOT + "/_DATA/data/mano"
-    model_cfg.MANO.MEAN_PARAMS = HAMER_ROOT + "/_DATA/data/mano_mean_params.npz"
+    model_cfg.MANO.MODEL_PATH = MANO_ROOT
+    model_cfg.MANO.MEAN_PARAMS = MANO_ROOT + "/mano_mean_params.npz"
     model_cfg.EXTRA.FOCAL_LENGTH = int(focal_length * model_cfg.MODEL.IMAGE_SIZE / max(img_size))
     model_cfg.freeze()
 
@@ -86,12 +117,33 @@ def load_hamer(checkpoint_path, config_path, img_size, focal_length):
     return model, model_cfg
 
 
-def load_wilor(checkpoint_path, cfg_path, img_size, focal_length):
+def load_wilor(
+    img_size: Tuple[int, int],
+    focal_length: float,
+    checkpoint_path: str = WILOR_CHECKPOINT_PATH,
+    cfg_path: str = WILOR_CONFIG_PATH,
+) -> Tuple[Any, dict]:
+    """
+    Load WiLoR model from checkpoint.
+
+    Args:
+        img_size (Tuple[int, int]): Image size (width, height).
+        focal_length (float): Focal length.
+        checkpoint_path (str): Path to the model checkpoint.
+        cfg_path (str): Path to the model config file.
+
+    Returns:
+        Tuple[WiLoR, dict]: Loaded model and its configuration.
+    """
+
     from wilor.configs import get_config
     from wilor.models import WiLoR
 
     model_cfg = get_config(cfg_path, update_cachedir=True)
     model_cfg.defrost()
+    model_cfg.MANO.DATA_DIR = MANO_ROOT
+    model_cfg.MANO.MODEL_PATH = MANO_ROOT
+    model_cfg.MANO.MEAN_PARAMS = MANO_ROOT + "/mano_mean_params.npz"
     model_cfg.EXTRA.FOCAL_LENGTH = int(focal_length * model_cfg.MODEL.IMAGE_SIZE / max(img_size))
     model_cfg.freeze()
 
@@ -110,29 +162,37 @@ def load_wilor(checkpoint_path, cfg_path, img_size, focal_length):
         model_cfg.MODEL.BACKBONE.pop("PRETRAINED_WEIGHTS")
         model_cfg.freeze()
 
-        # Update config to be compatible with demo
-
-    if "DATA_DIR" in model_cfg.MANO:
-        model_cfg.defrost()
-        model_cfg.MANO.DATA_DIR = WILOR_ROOT + "/mano_data/"
-        model_cfg.MANO.MODEL_PATH = WILOR_ROOT + "/mano_data/"
-        model_cfg.MANO.MEAN_PARAMS = WILOR_ROOT + "/mano_data/mano_mean_params.npz"
-        model_cfg.freeze()
-
     model = WiLoR.load_from_checkpoint(checkpoint_path, strict=False, cfg=model_cfg)
     return model, model_cfg
 
 
-def load_hmr2(checkpoint_path, img_size, focal_length):
-    from hmr2.configs import get_config, CACHE_DIR_4DHUMANS
-    from hmr2.models import download_models
+def load_hmr2(
+    img_size: Tuple[int, int],
+    focal_length: float,
+    checkpoint_path: str = HMR2_CHECKPOINT_PATH,
+    cfg_path: str = HMR2_CONFIG_PATH,
+) -> Tuple[Any, dict]:
+    """
+    Load HMR2 model from checkpoint.
+
+    Args:
+        checkpoint_path (str): Path to the model checkpoint.
+        cfg_path (str): Path to the model config file.
+        img_size (Tuple[int, int]): Image size (width, height).
+        focal_length (float): Focal length.
+
+    Returns:
+        Tuple[HMR2, dict]: Loaded model and its configuration.
+    """
+
+    from hmr2.configs import get_config
     from hmr2.models.hmr2 import HMR2
 
-    download_models(CACHE_DIR_4DHUMANS)
-
-    model_cfg = str(Path(checkpoint_path).parent.parent / "model_config.yaml")
-    model_cfg = get_config(model_cfg, update_cachedir=True)
+    model_cfg = get_config(cfg_path, update_cachedir=True)
     model_cfg.defrost()
+    model_cfg.SMPL.MODEL_PATH = SMPL_ROOT
+    model_cfg.SMPL.JOINT_REGRESSOR_EXTRA = SMPL_ROOT + "/SMPL_to_J19.pkl"
+    model_cfg.SMPL.MEAN_PARAMS = SMPL_ROOT + "/smpl_mean_params.npz"
     model_cfg.EXTRA.FOCAL_LENGTH = int(focal_length * model_cfg.MODEL.IMAGE_SIZE / max(img_size))
     model_cfg.freeze()
 
@@ -149,8 +209,8 @@ def load_hmr2(checkpoint_path, img_size, focal_length):
         import os
 
         candidates = [
-            f"{CACHE_DIR_4DHUMANS}/data/smpl/SMPL_NEUTRAL.pkl",
-            os.path.join(THIRD_PARTY_ROOT, "4D-Humans/data/basicModel_neutral_lbs_10_207_0_v1.0.0.pkl"),
+            SMPL_ROOT + "/SMPL_NEUTRAL.pkl",
+            SMPL_ROOT + "/basicModel_neutral_lbs_10_207_0_v1.0.0.pkl",
         ]
         candidates_exist = [os.path.exists(c) for c in candidates]
         if not any(candidates_exist):

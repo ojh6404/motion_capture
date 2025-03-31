@@ -34,10 +34,6 @@ from motion_capture.utils.utils import (
 from motion_capture.utils import (
     MANO_KEYPOINT_NAMES,
     SPIN_KEYPOINT_NAMES,
-    HAMER_CHECKPOINT_PATH,
-    HAMER_CONFIG_PATH,
-    WILOR_CHECKPOINT_PATH,
-    WILOR_CONFIG_PATH,
 )
 
 
@@ -97,8 +93,6 @@ class HamerModel(MocapModelBase):
 
         # init model
         self.mocap, self.model_cfg = load_hamer(
-            HAMER_CHECKPOINT_PATH,
-            HAMER_CONFIG_PATH,
             img_size=self.img_size,
             focal_length=self.focal_length,
         )
@@ -264,17 +258,17 @@ class HamerModel(MocapModelBase):
             pred_keypoints_3d += pred_cam_t_full[:, None, :]
 
             for i, hand_id in enumerate(right):  # for each hand
-                assert detections[i].label == "right_hand" if hand_id == 1 else "left_hand", (
-                    "Hand ID and hand detection mismatch"
-                )
+                assert (
+                    detections[i].label == "right_hand" if hand_id == 1 else "left_hand"
+                ), "Hand ID and hand detection mismatch"
                 orientation = global_orients[i]
                 if hand_id == 0:  # left hand
                     orientation[1::3] *= -1
                     orientation[2::3] *= -1
 
-                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i]), (
-                    "Keypoint mismatch"
-                )
+                assert (
+                    len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i])
+                ), "Keypoint mismatch"
                 mocap_result = MocapResult(
                     detection=detections[i],
                     position=pred_keypoints_3d[i][0],
@@ -359,8 +353,6 @@ class WiLoRModel(MocapModelBase):
 
         # init model
         self.mocap, self.model_cfg = load_wilor(
-            WILOR_CHECKPOINT_PATH,
-            WILOR_CONFIG_PATH,
             img_size=self.img_size,
             focal_length=self.focal_length,
         )
@@ -526,17 +518,17 @@ class WiLoRModel(MocapModelBase):
             pred_keypoints_3d += pred_cam_t_full[:, None, :]
 
             for i, hand_id in enumerate(right):  # for each hand
-                assert detections[i].label == "right_hand" if hand_id == 1 else "left_hand", (
-                    "Hand ID and hand detection mismatch"
-                )
+                assert (
+                    detections[i].label == "right_hand" if hand_id == 1 else "left_hand"
+                ), "Hand ID and hand detection mismatch"
                 orientation = global_orients[i]
                 if hand_id == 0:  # left hand
                     orientation[1::3] *= -1
                     orientation[2::3] *= -1
 
-                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i]), (
-                    "Keypoint mismatch"
-                )
+                assert (
+                    len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i])
+                ), "Keypoint mismatch"
                 mocap_result = MocapResult(
                     detection=detections[i],
                     position=pred_keypoints_3d[i][0],
@@ -621,7 +613,6 @@ class HMR2Model(MocapModelBase):
 
         # init model
         self.mocap, self.model_cfg = load_hmr2(
-            DEFAULT_CHECKPOINT,
             img_size=self.img_size,
             focal_length=self.focal_length,
         )
