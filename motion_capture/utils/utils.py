@@ -13,10 +13,12 @@ from motion_capture.utils import (
     HAND_COLOR,
     MANO_ROOT,
     SMPL_ROOT,
-    WILOR_CHECKPOINT_PATH,
-    WILOR_CONFIG_PATH,
     HAMER_CHECKPOINT_PATH,
     HAMER_CONFIG_PATH,
+    WILOR_CHECKPOINT_PATH,
+    WILOR_CONFIG_PATH,
+    HAMBA_CHECKPOINT_PATH,
+    HAMBA_CONFIG_PATH,
     HMR2_CHECKPOINT_PATH,
     HMR2_CONFIG_PATH,
 )
@@ -163,6 +165,63 @@ def load_wilor(
         model_cfg.freeze()
 
     model = WiLoR.load_from_checkpoint(checkpoint_path, strict=False, cfg=model_cfg)
+    return model, model_cfg
+
+
+def load_hamba(
+    img_size: Tuple[int, int],
+    focal_length: float,
+    checkpoint_path: str = HAMBA_CHECKPOINT_PATH,
+    cfg_path: str = HAMBA_CONFIG_PATH,
+) -> Tuple[Any, dict]:
+    """
+    Load Hamba model from checkpoint.
+
+    Args:
+        img_size (Tuple[int, int]): Image size (width, height).
+        focal_length (float): Focal length.
+        checkpoint_path (str): Path to the model checkpoint.
+        cfg_path (str): Path to the model config file.
+
+    Returns:
+        Tuple[WiLoR, dict]: Loaded model and its configuration.
+    """
+    from hamba.configs import get_config
+    from hamba.models import HAMBA
+
+    model_cfg = get_config(cfg_path, update_cachedir=True)
+    model_cfg.defrost()
+    model_cfg.MANO.DATA_DIR = MANO_ROOT
+    model_cfg.MANO.MODEL_PATH = MANO_ROOT
+    model_cfg.MANO.MEAN_PARAMS = MANO_ROOT + "/mano_mean_params.npz"
+    model_cfg.EXTRA.FOCAL_LENGTH = int(focal_length * model_cfg.MODEL.IMAGE_SIZE / max(img_size))
+    model_cfg.freeze()
+
+    # Override some config values, to crop bbox correctly
+    if ("vit" in model_cfg.MODEL.BACKBONE.TYPE) and ("BBOX_SHAPE" not in model_cfg.MODEL):
+        model_cfg.defrost()
+        assert (
+            model_cfg.MODEL.IMAGE_SIZE == 256
+        ), f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        model_cfg.MODEL.BBOX_SHAPE = [192, 256]
+        model_cfg.freeze()
+    elif model_cfg.MODEL.BACKBONE.TYPE == "vmamba" or model_cfg.MODEL.BACKBONE.TYPE == "fastvit_ma36":
+        model_cfg.defrost()
+        assert (
+            model_cfg.MODEL.IMAGE_SIZE == 224
+        ), f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 224 for vmamba backbone"
+        model_cfg.MODEL.BBOX_SHAPE = [224, 224]
+        model_cfg.freeze()
+
+    # Update config to be compatible with demo
+    if "PRETRAINED_WEIGHTS" in model_cfg.MODEL.BACKBONE:
+        model_cfg.defrost()
+        model_cfg.MODEL.BACKBONE.pop("PRETRAINED_WEIGHTS")
+        if "PRETRAINED_WEIGHTS_INIT_REGRESSION" in model_cfg.MODEL.keys():
+            model_cfg.MODEL.pop("PRETRAINED_WEIGHTS_INIT_REGRESSION")
+        model_cfg.freeze()
+
+    model = HAMBA.load_from_checkpoint(checkpoint_path, strict=False, cfg=model_cfg)
     return model, model_cfg
 
 

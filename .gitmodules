@@ -12,3 +12,6 @@
 [submodule "third_party/hand_object_detector"]
 	path = third_party/hand_object_detector
 	url = https://github.com/ojh6404/hand_object_detector.git
+[submodule "third_party/Hamba"]
+	path = third_party/Hamba
+	url = https://github.com/humansensinglab/Hamba.git

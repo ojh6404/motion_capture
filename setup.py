@@ -75,7 +75,7 @@ setup(
     install_requires=install_requires,
     eager_resources=["*"],
     include_package_data=True,
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     description="Motion Capture Utils for Human Pose Estimation and Hand Pose Estimation with 3D Mesh Reconstruction",
     author="Jihoon Oh",
     url="https://github.com/ojh6404/motion_capture",

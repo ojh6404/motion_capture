@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+ #!/usr/bin/bash
 
 git submodule update --init --recursive
 pip install ninja
@@ -7,7 +7,6 @@ pip install -e .
 # install body models
 echo "Installing body models"
 ./scripts/download_body_models.sh
-
 
 # install hand object detector
 echo "Installing hand object detector"
@@ -30,6 +29,14 @@ echo "Installing WiLoR"
 pip install -e "third_party/WiLoR"
 wget https://huggingface.co/spaces/rolpotamias/WiLoR/resolve/main/pretrained_models/wilor_final.ckpt -O weights/wilor.ckpt # download wilor checkpoints
 
+# install hamba
+echo "Installing Hamba"
+pip install -e "third_party/Hamba[all]" "causal-conv1d>=1.4.0"
+pip install "git+https://github.com/state-spaces/mamba"
+git clone https://github.com/MzeroMiko/VMamba.git && pip install -e "VMamba/kernels/selective_scan"
+gdown https://drive.google.com/uc\?id\=1JRPC11YfQym8t_EZkhsroglvGHrGPbU- -O hamba.zip
+unzip hamba.zip && mv hamba/checkpoints/hamba.ckpt weights/hamba.ckpt && rm -rf hamba hamba.zip
+
 # # install 4D-Humans
 echo "Installing 4D-Humans"
 pip install -e "third_party/4D-Humans[all]"
@@ -39,7 +46,6 @@ wget https://people.eecs.berkeley.edu/~jathushan/projects/4dhumans/hmr2_data.tar
     mv data/4D-Humans/data/SMPL_to_J19.pkl data/smpl && \
     mv 'data/4D-Humans/logs/train/multiruns/hmr2/0/checkpoints/epoch=35-step=1000000.ckpt' weights/hmr2.ckpt && \
     rm -rf hmr2_data.tar.gz data/4D-Humans
-
 
 # patch chumpy and renderer
 pip install -U PyOpenGL PyOpenGL_accelerate git+https://github.com/ojh6404/chumpy.git@patch-python3.11
