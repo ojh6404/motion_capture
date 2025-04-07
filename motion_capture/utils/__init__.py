@@ -30,6 +30,11 @@ WILOR_ROOT = os.path.join(THIRD_PARTY_ROOT, "WiLoR")
 WILOR_CHECKPOINT_PATH = PACKAGE_ROOT + "/weights/wilor.ckpt"
 WILOR_CONFIG_PATH = PACKAGE_ROOT + "/cfgs/wilor.yaml"
 
+# Hamba paths
+HAMBA_ROOT = os.path.join(THIRD_PARTY_ROOT, "Hamba")
+HAMBA_CHECKPOINT_PATH = PACKAGE_ROOT + "/weights/hamba.ckpt"
+HAMBA_CONFIG_PATH = PACKAGE_ROOT + "/cfgs/hamba.yaml"
+
 # HMR2 paths
 HMR2_ROOT = os.path.join(THIRD_PARTY_ROOT, "4D-Humans")
 HMR2_CHECKPOINT_PATH = PACKAGE_ROOT + "/weights/hmr2.ckpt"
