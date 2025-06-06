@@ -5,6 +5,7 @@ exclude = [
     "third_party/hamer",
     "third_party/WiLoR",
     "third_party/Hamba",
+    "third_party/VMamba",
     "third_party/hand_object_detector",
     "third_party/4D-Humans",
     "third_party/Arbitrary-Hands-3D-Reconstruction",
