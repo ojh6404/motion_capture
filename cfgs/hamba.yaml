@@ -1,0 +1,189 @@
+task_name: train
+tags:
+- dev
+train: true
+test: false
+ckpt_path: null
+seed: null
+DATASETS:
+  SUPPRESS_KP_CONF_THRESH: 0.3
+  FILTER_NUM_KP: 4
+  FILTER_NUM_KP_THRESH: 0.0
+  FILTER_REPROJ_THRESH: 31000
+  SUPPRESS_BETAS_THRESH: 3.0
+  SUPPRESS_BAD_POSES: false
+  POSES_BETAS_SIMULTANEOUS: true
+  FILTER_NO_POSES: false
+  TRAIN:
+    FREIHAND-TRAIN:
+      WEIGHT: 0.25
+    INTERHAND26M-TRAIN:
+      WEIGHT: 0.25
+    MTC-TRAIN:
+      WEIGHT: 0.1
+    RHD-TRAIN:
+      WEIGHT: 0.05
+    COCOW-TRAIN:
+      WEIGHT: 0.1
+    HALPE-TRAIN:
+      WEIGHT: 0.05
+    MPIINZSL-TRAIN:
+      WEIGHT: 0.05
+    HO3D-TRAIN:
+      WEIGHT: 0.05
+    H2O3D-TRAIN:
+      WEIGHT: 0.05
+    DEX-TRAIN:
+      WEIGHT: 0.05
+  VAL:
+    FREIHAND-TRAIN:
+      WEIGHT: 1.0
+  MOCAP: FREIHAND-MOCAP
+  BETAS_REG: true
+  CONFIG:
+    SCALE_FACTOR: 0.3
+    ROT_FACTOR: 30
+    TRANS_FACTOR: 0.02
+    COLOR_SCALE: 0.2
+    ROT_AUG_RATE: 0.6
+    TRANS_AUG_RATE: 0.5
+    DO_FLIP: false
+    FLIP_AUG_RATE: 0.0
+    EXTREME_CROP_AUG_RATE: 0.0
+    EXTREME_CROP_AUG_LEVEL: 1
+trainer:
+  _target_: pytorch_lightning.Trainer
+  default_root_dir: ${paths.output_dir}
+  accelerator: gpu
+  devices: 2
+  deterministic: false
+  num_sanity_val_steps: 0
+  log_every_n_steps: ${GENERAL.LOG_STEPS}
+  val_check_interval: ${GENERAL.VAL_STEPS}
+  precision: 16
+  max_steps: ${GENERAL.TOTAL_STEPS}
+  limit_val_batches: 1
+  strategy: ddp_find_unused_parameters_true
+  num_nodes: 1
+  sync_batchnorm: true
+paths:
+  root_dir: ${oc.env:PROJECT_ROOT}
+  data_dir: ${paths.root_dir}/data/
+  log_dir: logs/
+  output_dir: ${hydra:runtime.output_dir}
+  work_dir: ${hydra:runtime.cwd}
+extras:
+  ignore_warnings: false
+  enforce_tags: true
+  print_config: true
+exp_name: hamba
+MANO:
+  DATA_DIR: _DATA/data/
+  MODEL_PATH: data/mano
+  GENDER: neutral
+  NUM_HAND_JOINTS: 15
+  MEAN_PARAMS: data/mano_mean_params.npz
+  CREATE_BODY_POSE: false
+EXTRA:
+  FOCAL_LENGTH: 5000
+  NUM_LOG_IMAGES: 4
+  NUM_LOG_SAMPLES_PER_IMAGE: 8
+  PELVIS_IND: 0
+GENERAL:
+  TOTAL_STEPS: 1000000
+  LOG_STEPS: 1000
+  VAL_STEPS: 1000
+  CHECKPOINT_STEPS: 50000
+  CHECKPOINT_SAVE_TOP_K: -1
+  NUM_WORKERS: 2
+  PREFETCH_FACTOR: 2
+TRAIN:
+  LR: 1.0e-05
+  WEIGHT_DECAY: 0.0001
+  BATCH_SIZE: 56
+  LOSS_REDUCTION: mean
+  NUM_TRAIN_SAMPLES: 2
+  NUM_TEST_SAMPLES: 64
+  POSE_2D_NOISE_RATIO: 0.01
+  SMPL_PARAM_NOISE_RATIO: 0.005
+MODEL:
+  IMAGE_SIZE: 256
+  IMAGE_MEAN:
+  - 0.485
+  - 0.456
+  - 0.406
+  IMAGE_STD:
+  - 0.229
+  - 0.224
+  - 0.225
+  FEATURE_FUSION_TYPE: layer4
+  USE_DOWNSAMPLE: true
+  GRIDSAMPLE: true
+  GRIDSAMPLE_ORIGIANL: false
+  USE_INIT_REGRESSION: true
+  ONLY_TRAIN_USE_INIT_REGRESSION: false
+  PRETRAINED_WEIGHTS_INIT_REGRESSION: logs/train/runs/tmp.ckpt
+  USE_MAMBA_BLOCKS: true
+  USE_JOINT2D_FEAT: true
+  CONCAT_GLOBAL_MEAN: true
+  CONCAT_GLOBAL_MEAN_IN_END: true
+  CONCAT_GRID_MEAN_IN_END: true
+  CLIP_JOINT2D: true
+  JOINT_NUM: 21
+  BACKBONE:
+    TYPE: vit
+    PRETRAINED_WEIGHTS: _DATA/hamer_ckpts/tmp.ckpt
+  DECODER_MAMBA:
+    DIMS:
+    - 512
+    - 512
+    - 512
+    - 512
+    EMBED_DIM: 512
+    DEPTHS:
+    - 2
+    - 2
+    - 2
+    - 2
+    SSM_D_STATE: 1
+    SSM_DT_RANK: auto
+    SSM_RATIO: 2.0
+    SSM_CONV: 3
+    SSM_CONV_BIAS: false
+    SSM_FORWARDTYPE: v05_noz
+    MLP_RATIO: 4.0
+    DOWNSAMPLE: none
+    PATCHEMBED: v2
+    NORM_LAYER: ln2d
+    DROP_PATH_RATE: 0.2
+  MANO_HEAD:
+    TYPE: mamba_gcn_decoder
+    DIMS:
+    - 512
+    - 512
+    - 512
+    - 512
+    EMBED_DIM: 512
+    DEPTHS:
+    - 2
+    - 2
+    - 2
+    - 2
+    SSM_D_STATE: 1
+    SSM_DT_RANK: auto
+    SSM_RATIO: 2.0
+    SSM_CONV: 3
+    SSM_CONV_BIAS: false
+    SSM_FORWARDTYPE: v05_noz
+    MLP_RATIO: 4.0
+    DOWNSAMPLE: none
+    PATCHEMBED: v2
+    NORM_LAYER: ln2d
+    DROP_PATH_RATE: 0.2
+LOSS_WEIGHTS:
+  KEYPOINTS_3D: 0.05
+  KEYPOINTS_2D: 0.01
+  GLOBAL_ORIENT: 0.001
+  HAND_POSE: 0.001
+  BETAS: 0.0005
+  ADVERSARIAL: 0.0005
