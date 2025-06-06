@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import os
+
 os.environ["PYOPENGL_PLATFORM"] = "egl"  # Use EGL for OpenGL context creation
 import argparse
 import numpy as np

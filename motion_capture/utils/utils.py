@@ -98,9 +98,9 @@ def load_hamer(
     # Override some config values, to crop bbox correctly
     if (model_cfg.MODEL.BACKBONE.TYPE == "vit") and ("BBOX_SHAPE" not in model_cfg.MODEL):
         model_cfg.defrost()
-        assert (
-            model_cfg.MODEL.IMAGE_SIZE == 256
-        ), f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        assert model_cfg.MODEL.IMAGE_SIZE == 256, (
+            f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        )
         model_cfg.MODEL.BBOX_SHAPE = [192, 256]
         model_cfg.freeze()
 
@@ -147,9 +147,9 @@ def load_wilor(
     # Override some config values, to crop bbox correctly
     if ("vit" in model_cfg.MODEL.BACKBONE.TYPE) and ("BBOX_SHAPE" not in model_cfg.MODEL):
         model_cfg.defrost()
-        assert (
-            model_cfg.MODEL.IMAGE_SIZE == 256
-        ), f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        assert model_cfg.MODEL.IMAGE_SIZE == 256, (
+            f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        )
         model_cfg.MODEL.BBOX_SHAPE = [192, 256]
         model_cfg.freeze()
 
@@ -195,16 +195,16 @@ def load_hamba(
     # Override some config values, to crop bbox correctly
     if ("vit" in model_cfg.MODEL.BACKBONE.TYPE) and ("BBOX_SHAPE" not in model_cfg.MODEL):
         model_cfg.defrost()
-        assert (
-            model_cfg.MODEL.IMAGE_SIZE == 256
-        ), f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        assert model_cfg.MODEL.IMAGE_SIZE == 256, (
+            f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        )
         model_cfg.MODEL.BBOX_SHAPE = [192, 256]
         model_cfg.freeze()
     elif model_cfg.MODEL.BACKBONE.TYPE == "vmamba" or model_cfg.MODEL.BACKBONE.TYPE == "fastvit_ma36":
         model_cfg.defrost()
-        assert (
-            model_cfg.MODEL.IMAGE_SIZE == 224
-        ), f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 224 for vmamba backbone"
+        assert model_cfg.MODEL.IMAGE_SIZE == 224, (
+            f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 224 for vmamba backbone"
+        )
         model_cfg.MODEL.BBOX_SHAPE = [224, 224]
         model_cfg.freeze()
 
@@ -253,9 +253,9 @@ def load_hmr2(
     # Override some config values, to crop bbox correctly
     if (model_cfg.MODEL.BACKBONE.TYPE == "vit") and ("BBOX_SHAPE" not in model_cfg.MODEL):
         model_cfg.defrost()
-        assert (
-            model_cfg.MODEL.IMAGE_SIZE == 256
-        ), f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        assert model_cfg.MODEL.IMAGE_SIZE == 256, (
+            f"MODEL.IMAGE_SIZE ({model_cfg.MODEL.IMAGE_SIZE}) should be 256 for ViT backbone"
+        )
         model_cfg.MODEL.BBOX_SHAPE = [192, 256]
         model_cfg.freeze()
 

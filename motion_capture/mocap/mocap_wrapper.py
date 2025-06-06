@@ -238,9 +238,9 @@ class HamerModel(MocapModelBase):
         """
         mocap_results = []
         if detections is None:  # if there are detections
-            assert (
-                boxes is not None and is_right is not None
-            ), "If detections are None, boxes and is_right must be provided"
+            assert boxes is not None and is_right is not None, (
+                "If detections are None, boxes and is_right must be provided"
+            )
             detections = [
                 DetectionResult(
                     label="right_hand" if right else "left_hand",
@@ -303,17 +303,17 @@ class HamerModel(MocapModelBase):
             pred_verts += pred_cam_t_full[:, None, :]  # add translation wrt camera
 
             for i, hand_id in enumerate(is_right):  # for each hand
-                assert (
-                    detections[i].label == "right_hand" if hand_id == 1 else "left_hand"
-                ), "Hand ID and hand detection mismatch"
+                assert detections[i].label == "right_hand" if hand_id == 1 else "left_hand", (
+                    "Hand ID and hand detection mismatch"
+                )
                 orientation = global_orients[i]
                 if hand_id == 0:  # left hand
                     orientation[1::3] *= -1
                     orientation[2::3] *= -1
 
-                assert (
-                    len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i])
-                ), "Keypoint mismatch"
+                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i]), (
+                    "Keypoint mismatch"
+                )
                 mocap_result = MocapResult(
                     detection=detections[i],
                     position=pred_keypoints_3d[i][0],
@@ -554,9 +554,9 @@ class WiLoRModel(MocapModelBase):
         """
         mocap_results = []
         if detections is None:  # if there are detections
-            assert (
-                boxes is not None and is_right is not None
-            ), "If detections are None, boxes and is_right must be provided"
+            assert boxes is not None and is_right is not None, (
+                "If detections are None, boxes and is_right must be provided"
+            )
             detections = [
                 DetectionResult(
                     label="right_hand" if right else "left_hand",
@@ -619,17 +619,17 @@ class WiLoRModel(MocapModelBase):
             pred_verts += pred_cam_t_full[:, None, :]  # add translation wrt camera
 
             for i, hand_id in enumerate(is_right):  # for each hand
-                assert (
-                    detections[i].label == "right_hand" if hand_id == 1 else "left_hand"
-                ), "Hand ID and hand detection mismatch"
+                assert detections[i].label == "right_hand" if hand_id == 1 else "left_hand", (
+                    "Hand ID and hand detection mismatch"
+                )
                 orientation = global_orients[i]
                 if hand_id == 0:  # left hand
                     orientation[1::3] *= -1
                     orientation[2::3] *= -1
 
-                assert (
-                    len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i])
-                ), "Keypoint mismatch"
+                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i]), (
+                    "Keypoint mismatch"
+                )
                 mocap_result = MocapResult(
                     detection=detections[i],
                     position=pred_keypoints_3d[i][0],
@@ -1051,9 +1051,9 @@ class HambaModel(MocapModelBase):
         """
         mocap_results = []
         if detections is None:  # if there are detections
-            assert (
-                boxes is not None and is_right is not None
-            ), "If detections are None, boxes and is_right must be provided"
+            assert boxes is not None and is_right is not None, (
+                "If detections are None, boxes and is_right must be provided"
+            )
             detections = [
                 DetectionResult(
                     label="right_hand" if right else "left_hand",
@@ -1116,17 +1116,17 @@ class HambaModel(MocapModelBase):
             pred_verts += pred_cam_t_full[:, None, :]  # add translation wrt camera
 
             for i, hand_id in enumerate(is_right):  # for each hand
-                assert (
-                    detections[i].label == "right_hand" if hand_id == 1 else "left_hand"
-                ), "Hand ID and hand detection mismatch"
+                assert detections[i].label == "right_hand" if hand_id == 1 else "left_hand", (
+                    "Hand ID and hand detection mismatch"
+                )
                 orientation = global_orients[i]
                 if hand_id == 0:  # left hand
                     orientation[1::3] *= -1
                     orientation[2::3] *= -1
 
-                assert (
-                    len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i])
-                ), "Keypoint mismatch"
+                assert len(MANO_KEYPOINT_NAMES) == len(pred_keypoints_3d[i]) == len(pred_keypoints_2d[i]), (
+                    "Keypoint mismatch"
+                )
                 mocap_result = MocapResult(
                     detection=detections[i],
                     position=pred_keypoints_3d[i][0],
