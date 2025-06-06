@@ -15,3 +15,6 @@
 [submodule "third_party/Hamba"]
 	path = third_party/Hamba
 	url = https://github.com/humansensinglab/Hamba.git
+[submodule "third_party/VMamba"]
+	path = third_party/VMamba
+	url = https://github.com/MzeroMiko/VMamba.git

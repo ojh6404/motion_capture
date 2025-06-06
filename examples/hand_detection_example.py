@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import os
+os.environ["PYOPENGL_PLATFORM"] = "egl"  # Use EGL for OpenGL context creation
 import argparse
+import numpy as np
 import cv2
 from motion_capture import DetectionModelFactory, MocapModelFactory
 
 
 def main(args):
     image = cv2.imread(args.input)
-    img_size = (image.shape[1], image.shape[0])
+    img_size = (image.shape[1], image.shape[0])  # width, height
 
     detector = args.detector
     if detector == "hand_object_detector":
@@ -35,10 +38,11 @@ def main(args):
 
     mocap = args.mocap
     mocap_config = {
-        "focal_length": 525.0,
+        "K": np.array([[525.0, 0, img_size[0] / 2], [0, 525.0, img_size[1] / 2], [0, 0, 1]]),
         "rescale_factor": 2.0,
         "img_size": img_size,
         "visualize": True,
+        "renderer": "pytorch3d",
         "device": args.device,
     }
 

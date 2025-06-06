@@ -3,6 +3,7 @@
 
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 PACKAGE_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../.."))
 THIRD_PARTY_ROOT = os.path.join(PACKAGE_ROOT, "third_party")
@@ -41,7 +42,9 @@ HMR2_CHECKPOINT_PATH = PACKAGE_ROOT + "/weights/hmr2.ckpt"
 HMR2_CONFIG_PATH = PACKAGE_ROOT + "/cfgs/hmr2.yaml"
 
 # Hand colors
-HAND_COLOR = (0.65098039, 0.74117647, 0.85882353)
+CMAP = plt.cm.get_cmap("tab10")  # Use a colormap for hand colors
+N_COLORS = 256
+HAND_COLORS = [CMAP(i)[:3] for i in range(N_COLORS)]
 
 
 # hand constants
