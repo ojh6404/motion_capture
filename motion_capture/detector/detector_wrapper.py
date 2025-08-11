@@ -4,7 +4,7 @@ Hand and Body Detection Model Wrapper
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Union
+from typing import Optional
 import torch
 import numpy as np
 import cv2
@@ -42,7 +42,8 @@ class DetectionResult:
     rect: np.ndarray
     score: float
     state: str = "N"
-    object_rect: Union[np.ndarray, None] = None
+    object_rect: Optional[np.ndarray] = None  # Bounding box of the object, if detected
+    object_score: Optional[float] = None  # Score for the object, if detected
 
 
 class DetectionModelFactory:
@@ -153,6 +154,7 @@ class HandObjectDetectorModel(DetectionModelBase):
             )
             if hand_detection.state != "N" and obj_dets is not None:
                 hand_detection.object_rect = self.get_rect(obj_dets[img_obj_id[i]])
+                hand_detection.object_score = obj_dets[img_obj_id[i]][4]
             hand_detections.append(hand_detection)
         return hand_detections
 
