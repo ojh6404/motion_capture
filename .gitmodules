@@ -18,3 +18,6 @@
 [submodule "third_party/VMamba"]
 	path = third_party/VMamba
 	url = https://github.com/MzeroMiko/VMamba.git
+[submodule "third_party/smplx"]
+	path = third_party/smplx
+	url = https://github.com/vchoutas/smplx.git
