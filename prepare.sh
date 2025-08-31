@@ -12,8 +12,7 @@ echo "Installing body models"
 # install hand object detector
 echo "Installing hand object detector"
 cd third_party/hand_object_detector && pip install -r requirements.txt
-rm -rf lib/pycocotools && rm -rf lib/datasets # remove pycocotools and datasets cause they may cause conflicts with existing pycocotools
-cd lib && python setup.py build develop && cd ../../..
+cd lib && pip install -e . && cd ../../..
 gdown https://drive.google.com/uc\?id\=1H2tWsZkS7tDF8q1-jdjx6V9XrK25EDbE -O weights/hand_object_detector.pth # download hand object detector checkpoints
 
 # install hamer
