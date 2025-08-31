@@ -38,7 +38,7 @@ pip install -e "third_party/VMamba/kernels/selective_scan"
 gdown https://drive.google.com/uc\?id\=1JRPC11YfQym8t_EZkhsroglvGHrGPbU- -O hamba.zip
 unzip hamba.zip && mv hamba/checkpoints/hamba.ckpt weights/hamba.ckpt && rm -rf hamba hamba.zip
 
-# # install 4D-Humans
+# install 4D-Humans
 echo "Installing 4D-Humans"
 pip install -e "third_party/4D-Humans[all]"
 wget https://people.eecs.berkeley.edu/~jathushan/projects/4dhumans/hmr2_data.tar.gz && mkdir -p data/4D-Humans && \
@@ -47,6 +47,10 @@ wget https://people.eecs.berkeley.edu/~jathushan/projects/4dhumans/hmr2_data.tar
     mv data/4D-Humans/data/SMPL_to_J19.pkl data/smpl && \
     mv 'data/4D-Humans/logs/train/multiruns/hmr2/0/checkpoints/epoch=35-step=1000000.ckpt' weights/hmr2.ckpt && \
     rm -rf hmr2_data.tar.gz data/4D-Humans
+
+# install smplx
+echo "Installing SMPL-X"
+pip install -e "third_party/smplx"
 
 # patch chumpy and renderer
 pip install -U PyOpenGL PyOpenGL_accelerate git+https://github.com/ojh6404/chumpy.git@patch-python3.11 git+https://github.com/facebookresearch/pytorch3d.git
