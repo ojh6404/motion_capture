@@ -32,7 +32,7 @@ from motion_capture.utils import (
 
 np.random.seed(hand_object_detector_cfg.RNG_SEED)
 
-BOX_ANNOTATOR = sv.BoundingBoxAnnotator()
+BOX_ANNOTATOR = sv.BoxAnnotator()
 LABEL_ANNOTATOR = sv.LabelAnnotator()
 
 

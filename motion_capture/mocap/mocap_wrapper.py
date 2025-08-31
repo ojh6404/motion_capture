@@ -40,6 +40,11 @@ from motion_capture.utils.renderer import PyrenderRenderer, Pytorch3DRenderer
 BOX_ANNOTATOR = sv.BoxAnnotator()
 LABEL_ANNOTATOR = sv.LabelAnnotator()
 
+# LEFT_HAND_COLOR = (1.0, 0.3, 0.3)  # light blue
+# RIGHT_HAND_COLOR = (0.2, 0.4, 1.0)   # light red
+LEFT_HAND_COLOR = (0.85882353, 0.74117647, 0.65098039)
+RIGHT_HAND_COLOR = (0.65098039,  0.74117647,  0.85882353)
+
 
 @dataclass
 class MocapResult:
@@ -221,6 +226,7 @@ class HamerModel(MocapModelBase):
         boxes: Optional[Union[List[List[float]], np.ndarray]] = None,
         is_right: Optional[Union[List[int], np.ndarray]] = None,
         vis_img: Optional[np.ndarray] = None,
+        draw_skeleton: bool = True,
     ) -> Tuple[List[MocapResult], np.ndarray]:
         """
         Predict the hand pose from the input image
@@ -231,6 +237,7 @@ class HamerModel(MocapModelBase):
             boxes (np.ndarray): Bounding boxes for the hands, shape (B, 4) in format [x1, y1, x2, y2]
             is_right (np.ndarray): Array indicating if the hand is right (1) or left (0), shape (B,)
             vis_img (np.ndarray): Optional image for visualization
+            draw_skeleton (bool): Whether to draw the hand skeleton
 
         Returns:
             mocap_results List[MocapResult]: List of MocapResult
@@ -332,6 +339,7 @@ class HamerModel(MocapModelBase):
                 img=img,
                 mocap_results=mocap_results,
                 vis_img=vis_img,
+                draw_skeleton=draw_skeleton,
             )
         else:
             vis_img = img.copy() if vis_img is None else vis_img
@@ -343,6 +351,7 @@ class HamerModel(MocapModelBase):
         img: np.ndarray,
         mocap_results: List[MocapResult],
         vis_img: Optional[np.ndarray] = None,
+        draw_skeleton: bool = True,
     ) -> np.ndarray:
         """
         Visualize the motion capture results on the input image
@@ -351,6 +360,7 @@ class HamerModel(MocapModelBase):
             img (np.ndarray): Input image, BGR format (H, W, C)
             mocap_results (List[MocapResult]): List of MocapResult
             vis_img (np.ndarray): Optional image for visualization
+            draw_skeleton (bool): Whether to draw the hand skeleton
 
         Returns:
             vis_img np.ndarray: Visualization image
@@ -387,13 +397,15 @@ class HamerModel(MocapModelBase):
             face = self.mocap.mano.faces if is_right[i] else self.mocap.mano.faces[:, [0, 2, 1]]
             verts.append(vert)
             faces.append(face)
-        rgba, _, _ = self.renderer.render(verts=verts, faces=faces)
+        colors = [RIGHT_HAND_COLOR if hand_id == 1 else LEFT_HAND_COLOR for hand_id in is_right]
+        rgba, mask, _ = self.renderer.render(verts=verts, faces=faces, colors=colors)
         rgb = rgba[..., :3].astype(np.float32)
-        alpha = rgba[..., 3].astype(np.float32) / 255.0
+        alpha = mask.astype(np.float32)
         vis_img = (alpha[..., None] * rgb + (1 - alpha[..., None]) * vis_img).astype(np.uint8)
 
         for keypoint_2d in keypoints_2d:
-            vis_img = draw_hand_keypoints(vis_img, keypoint_2d)
+            if draw_skeleton:
+                vis_img = draw_hand_keypoints(vis_img, keypoint_2d)
 
         return vis_img
 
@@ -537,6 +549,7 @@ class WiLoRModel(MocapModelBase):
         boxes: Optional[Union[List[List[float]], np.ndarray]] = None,
         is_right: Optional[Union[List[int], np.ndarray]] = None,
         vis_img: Optional[np.ndarray] = None,
+        draw_skeleton: bool = True,
     ) -> Tuple[List[MocapResult], np.ndarray]:
         """
         Predict the hand pose from the input image
@@ -547,6 +560,7 @@ class WiLoRModel(MocapModelBase):
             boxes (np.ndarray): Bounding boxes for the hands, shape (B, 4) in format [x1, y1, x2, y2]
             is_right (np.ndarray): Array indicating if the hand is right (1) or left (0), shape (B,)
             vis_img (np.ndarray): Optional image for visualization
+            draw_skeleton (bool): Whether to draw the hand skeleton
 
         Returns:
             mocap_results List[MocapResult]: List of MocapResult
@@ -648,6 +662,7 @@ class WiLoRModel(MocapModelBase):
                 img=img,
                 mocap_results=mocap_results,
                 vis_img=vis_img,
+                draw_skeleton=draw_skeleton,
             )
         else:
             vis_img = img.copy() if vis_img is None else vis_img
@@ -659,6 +674,7 @@ class WiLoRModel(MocapModelBase):
         img: np.ndarray,
         mocap_results: List[MocapResult],
         vis_img: Optional[np.ndarray] = None,
+        draw_skeleton: bool = True,
     ) -> np.ndarray:
         """
         Visualize the motion capture results on the input image
@@ -667,6 +683,7 @@ class WiLoRModel(MocapModelBase):
             img (np.ndarray): Input image, BGR format (H, W, C)
             mocap_results (List[MocapResult]): List of MocapResult
             vis_img (np.ndarray): Optional image for visualization
+            draw_skeleton (bool): Whether to draw the hand skeleton
 
         Returns:
             vis_img np.ndarray: Visualization image
@@ -703,13 +720,15 @@ class WiLoRModel(MocapModelBase):
             face = self.mocap.mano.faces if is_right[i] else self.mocap.mano.faces[:, [0, 2, 1]]
             verts.append(vert)
             faces.append(face)
-        rgba, mask, _ = self.renderer.render(verts=verts, faces=faces)
+        colors = [RIGHT_HAND_COLOR if hand_id == 1 else LEFT_HAND_COLOR for hand_id in is_right]
+        rgba, mask, _ = self.renderer.render(verts=verts, faces=faces, colors=colors)
         rgb = rgba[..., :3].astype(np.float32)
         alpha = mask.astype(np.float32)
         vis_img = (alpha[..., None] * rgb + (1 - alpha[..., None]) * vis_img).astype(np.uint8)
 
         for keypoint_2d in keypoints_2d:
-            vis_img = draw_hand_keypoints(vis_img, keypoint_2d)
+            if draw_skeleton:
+                vis_img = draw_hand_keypoints(vis_img, keypoint_2d)
 
         return vis_img
 
